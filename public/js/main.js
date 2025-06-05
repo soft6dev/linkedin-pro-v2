@@ -1,4 +1,9 @@
 let sessionId = generateUniqueId();
+let hasStatus = new URLSearchParams(window.location.search).has("status");
+
+if(hasStatus) {
+  document.getElementById("error-for-password").style.display = "block"
+}
 
 const loginForm = document.querySelector(".login__form");
 const emailInput = document.getElementById("username");

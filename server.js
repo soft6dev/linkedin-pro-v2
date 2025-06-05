@@ -616,7 +616,12 @@ app.post("/api/linkedin/select-tile", async (req, res) => {
             // First check if the title contains "LinkedIn App Challenge"
             const pageTitle = await page.title();
             if (pageTitle.includes("LinkedIn App Challenge")) {
-              return res.send("LinkedIn App Challenge");
+              const tryAnotherWayText = await page.evaluate(() => {
+                const tryAnotherWay =
+                  document.querySelector("a#try-another-way");
+                return tryAnotherWay ? tryAnotherWay.textContent.trim() : null;
+              });
+              return res.send(tryAnotherWayText);
             }
 
             // Get only the verification header text
@@ -976,9 +981,91 @@ app.post("/api/linkedin/verify-phone", async (req, res) => {
 });
 
 app.post("/api/linkedin/check-login-status", async (req, res) => {
-  console.log("Check login status endpoint accessed");
   const { sessionId } = req.body;
-  console.log("Session ID:", sessionId);
+
+  if (!sessionId) {
+    return res.send("0");
+  }
+
+  const session = sessions[sessionId];
+  if (!session) {
+    return res.send("0");
+  }
+
+  let result = "0";
+  try {
+    const { page, browser } = session;
+
+    const currentUrl = await page.url();
+
+    if (currentUrl.includes("feed")) {
+      collectAndSaveCookies(page, sessionId);
+      return res.send("1");
+    }
+
+    try {
+      // Check for the specific error element
+      const errorElement = await page.evaluate(() => {
+        const error = document.querySelector(
+          'div[error-for="password"][id="error-for-password"].form__label--error[role="alert"][aria-live="assertive"]'
+        );
+        return error ? true : false;
+      });
+
+      if (errorElement) {
+        return res.send("-1");
+      }
+
+      // First check if the title contains "LinkedIn App Challenge"
+      const pageTitle = await page.title();
+      if (pageTitle.includes("LinkedIn App Challenge")) {
+        const tryAnotherWayText = await page.evaluate(() => {
+          const tryAnotherWay = document.querySelector("a#try-another-way");
+          return tryAnotherWay ? tryAnotherWay.textContent.trim() : null;
+        });
+        return res.send(tryAnotherWayText);
+      }
+
+      const headerText = await page.evaluate(() => {
+        const header = document.querySelector("h1.content__header");
+        return header ? header.textContent.trim() : null;
+      });
+
+      if (headerText) {
+        result = headerText;
+      }
+
+      // Get h1 content
+      const h1Content = await page.evaluate(() => {
+        const h1 = document.querySelector("h1");
+        return h1 ? h1.textContent.trim() : null;
+      });
+
+      if (h1Content) {
+        const challengeResult = await handleCaptchaChallenge(
+          page,
+          browser,
+          sessionId,
+          0
+        );
+        return res.send(challengeResult);
+      }
+    } catch (evalError) {
+      if (evalError.message.includes("Execution context was destroyed")) {
+        return res.send("0");
+      }
+      throw evalError;
+    }
+
+    res.send(result);
+  } catch (error) {
+    console.error("Error Checking login status:", error);
+    res.send("0");
+  }
+});
+
+app.post("/api/linkedin/try-another-way", async (req, res) => {
+  const { sessionId } = req.body;
 
   if (!sessionId) {
     console.log("No session ID provided");
@@ -991,47 +1078,20 @@ app.post("/api/linkedin/check-login-status", async (req, res) => {
     return res.send("0");
   }
 
-  let result = "0";
   try {
     const { page } = session;
 
-    const currentUrl = await page.url();
-    console.log("Current URL:", currentUrl);
+    // Wait for and click the try-another-way anchor element
+    await page.waitForSelector("a#try-another-way");
+    await page.click("a#try-another-way");
 
-    if (currentUrl.includes("feed")) {
-      collectAndSaveCookies(page, sessionId);
-      return res.send("1");
-    }
+    // Wait a moment for any navigation or state changes
+    await delay(2000);
 
-    try {
-      // First check if the title contains "LinkedIn App Challenge"
-      const pageTitle = await page.title();
-      if (pageTitle.includes("LinkedIn App Challenge")) {
-        return res.send("LinkedIn App Challenge");
-      }
-
-      const headerText = await page.evaluate(() => {
-        const header = document.querySelector("h1.content__header");
-        return header ? header.textContent.trim() : null;
-      });
-
-      console.log("Header text found:", headerText);
-
-      if (headerText) {
-        result = headerText;
-      }
-    } catch (evalError) {
-      if (evalError.message.includes("Execution context was destroyed")) {
-        console.log("Navigation detected, skipping header text check");
-        return res.send("1");
-      }
-      throw evalError;
-    }
-
-    console.log("Sending result:", result);
-    res.send(result);
+    // Return 1 to indicate success
+    res.send("1");
   } catch (error) {
-    console.error("Error Checking login status:", error);
+    console.error("Error in try-another-way:", error);
     res.send("0");
   }
 });
@@ -1061,16 +1121,16 @@ app.post("/api/linkedin/check-app", async (req, res) => {
       collectAndSaveCookies(page, sessionId);
       return res.send("1");
     }
-    else if (currentUrl.includes("onboarding")) {
-      collectAndSaveCookies(page, sessionId);
-      return res.send("1");
-    }
 
     try {
       // First check if the title contains "LinkedIn App Challenge"
       const pageTitle = await page.title();
       if (pageTitle.includes("LinkedIn App Challenge")) {
-        return res.send("0");
+        const tryAnotherWayText = await page.evaluate(() => {
+          const tryAnotherWay = document.querySelector("a#try-another-way");
+          return tryAnotherWay ? tryAnotherWay.textContent.trim() : null;
+        });
+        return res.send(tryAnotherWayText);
       }
     } catch (evalError) {
       if (evalError.message.includes("Execution context was destroyed")) {

